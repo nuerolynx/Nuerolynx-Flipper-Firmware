@@ -1,0 +1,77 @@
+import os
+from pathlib import Path
+
+
+Import("ENV")
+
+
+ENV.AppendUnique(
+    CFLAGS=[
+        "-std=gnu2x",
+        "-Wstrict-prototypes",
+    ],
+    CXXFLAGS=[
+        "-std=c++20",
+        "-fno-rtti",
+        "-fno-use-cxa-atexit",
+        "-fno-exceptions",
+        "-fno-threadsafe-statics",
+        "-ftemplate-depth=4096",
+    ],
+    CCFLAGS=[
+        "-mcpu=cortex-m4",
+        "-mfloat-abi=hard",
+        "-mfpu=fpv4-sp-d16",
+        "-mthumb",
+        # "-MMD",
+        # "-MP",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-error=deprecated-declarations",
+        "-Wno-address-of-packed-member",
+        "-Wredundant-decls",
+        "-Wdouble-promotion",
+        "-Wundef",
+        "-fdata-sections",
+        "-ffunction-sections",
+        "-Wa,-gdwarf-sections",
+        "-fsingle-precision-constant",
+        "-fno-math-errno",
+        # Generates .su files with stack usage information
+        # "-fstack-usage",
+        "-g",
+    ],
+    CPPDEFINES=[
+        "_GNU_SOURCE",
+        *GetOption("extra_defines"),
+    ],
+    LINKFLAGS=[
+        "-mcpu=cortex-m4",
+        "-mfloat-abi=hard",
+        "-mfpu=fpv4-sp-d16",
+        "-mlittle-endian",
+        "-mthumb",
+        "-Wl,--no-warn-rwx-segment",
+    ],
+)
+
+# GCC's Windows multilib discovery can locate this directory but still fail to
+# open bits/c++config.h when the checkout path contains spaces. Add the exact
+# Cortex-M4 hard-float include directory explicitly for C++ compilations.
+if ENV["PLATFORM"] == "win32":
+    toolchain_root = os.environ.get("FBT_TOOLCHAIN_ROOT")
+    if toolchain_root:
+        cpp_root = Path(toolchain_root) / "arm-none-eabi" / "include" / "c++"
+        if cpp_root.is_dir():
+            for version_dir in cpp_root.iterdir():
+                multilib_include = (
+                    version_dir
+                    / "arm-none-eabi"
+                    / "thumb"
+                    / "v7e-m+fp"
+                    / "hard"
+                )
+                if (multilib_include / "bits" / "c++config.h").is_file():
+                    ENV.AppendUnique(CXXFLAGS=["-isystem", str(multilib_include)])
+                    break

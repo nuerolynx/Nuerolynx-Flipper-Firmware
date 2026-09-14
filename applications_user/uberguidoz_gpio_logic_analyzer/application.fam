@@ -1,0 +1,16 @@
+App(
+    appid="gpio_logic_analyzer",
+    name="NLX Logic Analyzer",
+    apptype=FlipperAppType.EXTERNAL,
+    targets=["f7"],
+    entry_point="gpio_analyzer_app",
+    requires=["gui", "storage", "notification"],
+    stack_size=3 * 1024,
+    sources=["*.c"],
+    fap_category="GPIO",
+    fap_version=(2, 1),
+    fap_icon="icons/nlx_menu_10px.png",
+    fap_description="Passive eight-channel GPIO logic analyzer with CSV capture",
+    fap_author="UberGuidoZ / Nuerolynx integration",
+    fap_weburl="https://github.com/UberGuidoZ/Flipper",
+)
